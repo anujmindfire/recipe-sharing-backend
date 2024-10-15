@@ -16,10 +16,9 @@ The Recipe Sharing Application is a platform that allows users to share, discove
    git clone https://github.com/anujmindfire/recipe-sharing-backend.git
    cd recipe-sharing-backend
    
-2. **Install backend dependencies: Navigate to the serverside folder and install the necessary dependencies:**
+2. **Install backend dependencies:**
    ```bash
-   cd serverside
-   npm install
+   npm install or npm i
 
 3. **Set up environment variables: Create a .env file in the root directory with the following content:**
    ```bash
