@@ -6,7 +6,7 @@ export const followUser = async (req, res) => {
     const body = req.body;
 
     if (!isValidId(body.followerId) || !isValidId(body.followedId)) {
-        return res.status(400).send({ status: false, message: constant.user.validationError.invalidID });
+        return res.status(constant.statusCode.required).send({ status: false, message: constant.user.validationError.invalidID });
     }
 
     try {
@@ -14,12 +14,12 @@ export const followUser = async (req, res) => {
         const followed = await userModel.findById(body.followedId);
 
         if (!follower || !followed) {
-            return res.status(404).send({ status: false, message: constant.otp.validationError.userNotFound });
+            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.userNotFound });
         }
 
         if (body.follow && !body.unfollowBody) {
             if (follower.following.includes(body.followedId)) {
-                return res.status(400).send({ status: false, message: constant.user.validationError.alreadyFollow });
+                return res.status(constant.statusCode.alreadyExist).send({ status: false, message: constant.user.validationError.alreadyFollow });
             }
 
             await userModel.findByIdAndUpdate(body.followedId, {
@@ -39,10 +39,10 @@ export const followUser = async (req, res) => {
                     message: notificationMessage
                 });
             }
-            return res.status(200).send({ status: true, message: constant.user.followUser });
+            return res.status(constant.statusCode.success).send({ status: true, message: constant.user.followUser });
         } else if (!body.follow && !body.unfollowBody) {
             if (!follower.following.includes(body.followedId)) {
-                return res.status(400).send({ status: false, message: constant.user.validationError.notFollowing });
+                return res.status(constant.statusCode.required).send({ status: false, message: constant.user.validationError.notFollowing });
             }
 
             await userModel.findByIdAndUpdate(body.followedId, {
@@ -52,10 +52,10 @@ export const followUser = async (req, res) => {
             await userModel.findByIdAndUpdate(body.followerId, {
                 $pull: { following: body.followedId }
             });
-            return res.status(200).send({ status: true, message: constant.user.unfollowUser });
+            return res.status(constant.statusCode.success).send({ status: true, message: constant.user.unfollowUser });
         } else if (!body.follow && body.unfollowBody) {
             if (!followed.following.includes(body.followerId)) {
-                return res.status(400).send({ status: false, message: constant.user.validationError.notFollowing });
+                return res.status(constant.statusCode.required).send({ status: false, message: constant.user.validationError.notFollowing });
             }
 
             await userModel.findByIdAndUpdate(body.followerId, {
@@ -65,10 +65,10 @@ export const followUser = async (req, res) => {
             await userModel.findByIdAndUpdate(body.followedId, {
                 $pull: { following: body.followerId }
             });
-            return res.status(200).send({ status: true, message: constant.user.unfollowUser });
+            return res.status(constant.statusCode.success).send({ status: true, message: constant.user.unfollowUser });
         }
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };

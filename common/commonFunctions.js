@@ -191,16 +191,16 @@ const handleUser = async (req, res, body) => {
         const otpResult = await createOTP(req, res);
 
         if ([constant.otp.validationError.reachLimit].includes(otpResult)) {
-            return res.status(429).send({ status: false, message: otpResult });
+            return res.status(constant.statusCode.tooManyRequests).send({ status: false, message: otpResult });
         }
 
         if ([constant.otp.validationError.tryAgain].includes(otpResult)) {
-            return res.status(400).send({ status: false, message: otpResult });
+            return res.status(constant.statusCode.required).send({ status: false, message: otpResult });
         }
 
         const emailResult = await sendOTPByEmail(body.email, body.name, otpResult.otp);
         if (emailResult === constant.forgotPassword.validationError.invalidCred) {
-            return res.status(400).send({ status: false, message: constant.forgotPassword.validationError.errorSendEmail });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.forgotPassword.validationError.errorSendEmail });
         }
 
         if (req.update) {
@@ -208,9 +208,9 @@ const handleUser = async (req, res, body) => {
         } else {
             await userModel.create(body);
         }
-        return res.status(200).send({ status: true, message: constant.otp.otpSuccess, data: { txnId: otpResult.txnId } });
+        return res.status(constant.statusCode.success).send({ status: true, message: constant.otp.otpSuccess, data: { txnId: otpResult.txnId } });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 }
 

@@ -9,11 +9,11 @@ export const verifyOTP = async (req, res) => {
         const transaction = await otpModel.findOne({ txnId: body.txnId });
 
         if (!transaction) {
-            return res.status(400).send({ status: false, message: constant.otp.validationError.transactionNotMatch });
+            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.transactionNotMatch });
         }
 
         if (transaction.expired) {
-            return res.status(400).send({ status: false, message: constant.otp.validationError.otpExpired });
+            return res.status(constant.statusCode.expired).send({ status: false, message: constant.otp.validationError.otpExpired });
         }
             
 
@@ -21,24 +21,24 @@ export const verifyOTP = async (req, res) => {
         
         if (timeDifference > transaction.expiryTime) {
             await markTransactionAsExpired(transaction);
-            return res.status(400).send({ status: false, message: constant.otp.validationError.otpHasBeenExpired });
+            return res.status(constant.statusCode.expired).send({ status: false, message: constant.otp.validationError.otpHasBeenExpired });
         }
         
         if (body.otp !== transaction.otp) {
-            return res.status(400).send({ status: false, message: constant.otp.validationError.emailOtpNotMatch });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.otp.validationError.emailOtpNotMatch });
         }
 
         const user = await userModel.findOne({ email: transaction.email }).select('email');
         if (!user) {
-            return res.status(404).send({ status: false, message: constant.otp.validationError.userNotFound });
+            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.userNotFound });
         }
 
         await verifyUser(user);
         await markTransactionAsExpired(transaction);
 
-        return res.status(200).send({ status: true, message: constant.otp.otpVerified });
+        return res.status(constant.statusCode.success).send({ status: true, message: constant.otp.otpVerified });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };
 

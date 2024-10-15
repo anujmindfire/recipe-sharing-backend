@@ -1,5 +1,5 @@
 import express from 'express';
-import { verifyToken } from '../controller/auth/verifyToken.js';
+import { verifyToken } from '../controller/auth/auth.js';
 import { createOrUpdateFeedback } from '../controller/recipeFeedback/createOrupdate.js';
 const apiRoutes = express.Router();
 

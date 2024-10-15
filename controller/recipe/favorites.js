@@ -14,11 +14,11 @@ export const favoritesRecipe = async (req, res) => {
         const user = await userModel.findById(req.user.userId).select('savedRecipes');
 
         if (!user) {
-            return res.status(404).send({ status: false, message: constant.user.validationError.userNotFound });
+            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.user.validationError.userNotFound });
         }
 
         if (user.savedRecipes.length === 0) {
-            return res.status(200).send({ status: true, message: constant.recipe.recipeNotFound, data: [] });
+            return res.status(constant.statusCode.notFound).send({ status: true, message: constant.recipe.recipeNotFound, data: [] });
         }
 
         const totalRecipes = user.savedRecipes.length;
@@ -48,7 +48,7 @@ export const favoritesRecipe = async (req, res) => {
         const uniquePreparationTimes = uniqueTimes[0] ? uniqueTimes[0].uniquePreparationTimes : [];
         const uniqueCookingTimes = uniqueTimes[0] ? uniqueTimes[0].uniqueCookingTimes : [];
 
-        return res.status(200).send({
+        return res.status(data.length > 0 ? constant.statusCode.success : constant.statusCode.notFound).send({
             timestamp: moment().unix(),
             message: data.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
             success: true,
@@ -58,6 +58,6 @@ export const favoritesRecipe = async (req, res) => {
             uniqueCookingTimes: uniqueCookingTimes
         });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };

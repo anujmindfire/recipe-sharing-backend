@@ -11,20 +11,20 @@ export const passwordVerify = async (req, res) => {
         let transaction = await forgotPasswordModel.findOne({ txnId: body.txnId });
 
         if (!transaction) {
-            return res.status(400).send({ status: false, message: constant.otp.validationError.invalidTransationId });
+            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.invalidTransationId });
         }
 
         if (transaction.expired) {
-            return res.status(400).send({ status: false, message: constant.forgotPassword.validationError.linkExpired });
+            return res.status(constant.statusCode.expired).send({ status: false, message: constant.forgotPassword.validationError.linkExpired });
         }
 
         const requiredFields = checkRequiredFields(['password', 'confirmPassword'], body);
         if (requiredFields !== true) {
-            return res.status(400).send({ status: false, message: constant.general.requiredField(requiredFields) });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.general.requiredField(requiredFields) });
         }
 
         if (body.confirmPassword !== body.password) {
-            return res.status(400).send({ status: false, message: constant.forgotPassword.validationError.passwordNotMatch })
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.forgotPassword.validationError.passwordNotMatch })
         }
 
         const timeDifference = new Date() - new Date(transaction.updatedAt);
@@ -32,7 +32,7 @@ export const passwordVerify = async (req, res) => {
         if (timeDifference > transaction.expiryTime) {
             transaction.expired = true;
             await transaction.save();
-            return res.status(400).send({ status: false, message: constant.forgotPassword.validationError.linkExpired })
+            return res.status(constant.statusCode.expired).send({ status: false, message: constant.forgotPassword.validationError.linkExpired })
         } else {
             let user = await userModel.findById(transaction.userId);
             if (!user) return res.status(404).send({ status: false, message: constant.otp.validationError.userNotFound })
@@ -40,9 +40,9 @@ export const passwordVerify = async (req, res) => {
             transaction.expired = true;
             await user.save();
             await transaction.save();
-            return res.status(200).send({ status: true, message: constant.forgotPassword.passwordChange })
+            return res.status(constant.statusCode.success).send({ status: true, message: constant.forgotPassword.passwordChange })
         }
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };
