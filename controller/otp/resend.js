@@ -13,19 +13,19 @@ export const resendOTP = async (req, res) => {
         let transaction = await otpModel.findOne({ txnId: body.txnId });
         
         if (!transaction) {
-            return res.status(400).send({ status: false, message: constant.otp.validationError.invalidTransationId });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.otp.validationError.invalidTransationId });
         }
 
         const user = await userModel.findOne({ email: transaction.email }).select(['email', 'name']);
 
         if (!user) {
-            return res.status(404).send({ status: false, message: constant.otp.validationError.userNotFound });
+            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.userNotFound });
         }
 
         if (transaction.limit === constant.otp.maxLimit && transaction.blockedUntil !== null) {            
             const result = await processBlockedUser(req, res, otpCode, transaction);
             if ([constant.otp.validationError.tryAgain].includes(result)) {
-                return res.status(400).send({ status: false, message: result });
+                return res.status(constant.statusCode.serviceUnavailable).send({ status: false, message: result });
             }
             transaction.txnId = result.txnId; 
             otpCode = result.otp;
@@ -35,7 +35,7 @@ export const resendOTP = async (req, res) => {
             const result = await handleOTPLimit(req, res, otpCode, transaction);
 
             if ([constant.otp.validationError.reachLimit].includes(result)) {
-                return res.status(400).send({ status: false, message: result });
+                return res.status(constant.statusCode.tooManyRequests).send({ status: false, message: result });
             }
 
             transaction.txnId = result.txnId; 
@@ -44,10 +44,10 @@ export const resendOTP = async (req, res) => {
 
         const emailResult = await sendOTPByEmail(user.email, user.name, otpCode);
         if (emailResult === constant.forgotPassword.validationError.invalidCred) {
-            return res.status(400).send({ status: false, message: constant.forgotPassword.validationError.errorSendEmail });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.forgotPassword.validationError.errorSendEmail });
         }
-        return res.status(200).send({ status: true, message: constant.otp.otpSuccess, data: { txnId: transaction.txnId } });
+        return res.status(constant.statusCode.success).send({ status: true, message: constant.otp.otpSuccess, data: { txnId: transaction.txnId } });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };

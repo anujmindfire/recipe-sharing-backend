@@ -15,12 +15,12 @@ export const sendEmailForForgotPassword = async (req, res) => {
         const uuidWithoutHyphens = uuidv4().replace(/-/g, '');
 
         if (!body.email) {
-            return res.status(400).send({ status: false, message: constant.forgotPassword.validationError.emailRequired });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.forgotPassword.validationError.emailRequired });
         }
 
         const userData = await userModel.findOne({ email: body.email });
         if (!userData || (userData && !userData.verified)) {
-            return res.status(404).send({ status: false, message: constant.forgotPassword.validationError.emailNotExist });
+            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.forgotPassword.validationError.emailNotExist });
         }
 
         const currentDate = new Date();
@@ -33,15 +33,15 @@ export const sendEmailForForgotPassword = async (req, res) => {
             const hasExceededEmailCount = existingEntry.emailCount >= 3;
 
             if (hasExceededEmailCount) {
-                return res.status(429).send({ status: false, message: constant.forgotPassword.validationError.reachLimit });
+                return res.status(constant.statusCode.tooManyRequests).send({ status: false, message: constant.forgotPassword.validationError.reachLimit });
             }
 
             if (emailCountToday && existingEntry.requestCount >= 2) {
-                return res.status(429).send({ status: false, message: constant.forgotPassword.validationError.dayLimit });
+                return res.status(constant.statusCode.tooManyRequests).send({ status: false, message: constant.forgotPassword.validationError.dayLimit });
             }
 
             if (!canSendEmail) {
-                return res.status(429).send({ status: false, message: constant.forgotPassword.validationError.waitTime });
+                return res.status(constant.statusCode.tooManyRequests).send({ status: false, message: constant.forgotPassword.validationError.waitTime });
             }
 
             existingEntry.txnId = uuidWithoutHyphens;
@@ -82,12 +82,12 @@ export const sendEmailForForgotPassword = async (req, res) => {
 
         const result = await sendEmail(mailOptions);
         if (result.messageId && result.accepted.length > 0) {
-            return res.status(200).send({ status: true, message: constant.forgotPassword.emailSuccess, data: { txnId: uuidWithoutHyphens } });
+            return res.status(constant.statusCode.success).send({ status: true, message: constant.forgotPassword.emailSuccess, data: { txnId: uuidWithoutHyphens } });
         }
 
-        return res.status(400).send({ status: false, message: constant.forgotPassword.validationError.errorSendEmail });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.forgotPassword.validationError.errorSendEmail });
         
     } catch (error) {
-        return res.status(401).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };

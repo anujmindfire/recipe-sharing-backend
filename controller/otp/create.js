@@ -39,7 +39,7 @@ export const createOTP = async (req, res) => {
 
         return { txnId: otpEntry.txnId, otp: otpEntry.otp };
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };
 
@@ -61,7 +61,7 @@ export const processBlockedUser = async (req, res, otp, transaction) => {
 
         throw new Error(constant.otp.validationError.invalidOtp);
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 }
 
@@ -94,7 +94,7 @@ export const handleOTPLimit = async (req, res, otp, transaction) => {
 
         throw new Error(constant.otp.validationError.invalidOtp);
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 }
 

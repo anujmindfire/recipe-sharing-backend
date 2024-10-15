@@ -17,13 +17,13 @@ export const getRecipe = async (req, res) => {
             try {
 
                 if (!isValidId(req.query._id)) {
-                    return res.status(400).send({ status: false, message: constant.recipe.invalidID });
+                    return res.status(constant.statusCode.required).send({ status: false, message: constant.recipe.invalidID });
                 }
                 // Fetch the recipe by ID
                 const recipe = await recipeModel.findById(req.query._id).populate('creator', 'name');
 
                 if (!recipe) {
-                    return res.status(404).json({ status: false, message: constant.recipe.recipeNotFound });
+                    return res.status(constant.statusCode.notFound).json({ status: false, message: constant.recipe.recipeNotFound });
                 }
 
                 // Fetch feedback stats and calculate review count, average rating, and rating distributions
@@ -41,9 +41,9 @@ export const getRecipe = async (req, res) => {
                     ratingPercentages: feedbackStats.ratingPercentages,
                 };
 
-                return res.status(200).send({ status: true, message: constant.general.fetchData, data: responseData });
+                return res.status(constant.statusCode.success).send({ status: true, message: constant.general.fetchData, data: responseData });
             } catch (error) {
-                return res.status(400).send({ status: false, message: constant.general.genericError });
+                return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
             }
         }
 
@@ -72,7 +72,7 @@ export const getRecipe = async (req, res) => {
         const uniquePreparationTimes = uniqueTimes[0] ? uniqueTimes[0].uniquePreparationTimes : [];
         const uniqueCookingTimes = uniqueTimes[0] ? uniqueTimes[0].uniqueCookingTimes : [];
 
-        return res.status(200).send({
+        return res.status(data.length > 0 ? constant.statusCode.success : constant.statusCode.notFound).send({
             timestamp: moment().unix(),
             message: data.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
             success: true,
@@ -82,7 +82,7 @@ export const getRecipe = async (req, res) => {
             uniqueCookingTimes: uniqueCookingTimes
         });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };
 

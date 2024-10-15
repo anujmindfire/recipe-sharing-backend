@@ -1,5 +1,5 @@
 import express from 'express';
-import { verifyToken } from '../controller/auth/verifyToken.js';
+import { verifyToken } from '../controller/auth/auth.js';
 import { createRecipe } from '../controller/recipe/create.js';
 import { getRecipe } from '../controller/recipe/get.js';
 import { favoritesRecipe } from '../controller/recipe/favorites.js'

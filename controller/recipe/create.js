@@ -8,19 +8,19 @@ export const createRecipe = async (req, res) => {
 
         // Validate request body
         if (!isValidRequest(body)) {
-            return res.status(400).send({ status: false, message: constant.recipe.missingRecipeDetails });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.recipe.missingRecipeDetails });
         }
 
         // Check required fields
         const requiredFields = checkRequiredFields(['title', 'ingredients', 'steps', 'imageUrl', 'preparationTime', 'cookingTime'], body);
         if (requiredFields !== true) {
-            return res.status(400).send({ status: false, message: constant.general.requiredField(requiredFields) });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.general.requiredField(requiredFields) });
         }
 
         // A user can create one recipe with the same title.
         const duplicateTitle = await recipeModel.findOne({ creator: req.user.userId, title: body.title });
         if (duplicateTitle) {
-            return res.status(400).send({ status: false, message: constant.recipe.duplicateTitleError });
+            return res.status(constant.statusCode.alreadyExist).send({ status: false, message: constant.recipe.duplicateTitleError });
         }
 
         // Create the recipe directly with creator included
@@ -29,8 +29,8 @@ export const createRecipe = async (req, res) => {
             creator: req.user.userId
         });
 
-        return res.status(200).send({ status: true, message: constant.recipe.recipeCreatedSuccess, data: result });
+        return res.status(constant.statusCode.success).send({ status: true, message: constant.recipe.recipeCreatedSuccess, data: result });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };

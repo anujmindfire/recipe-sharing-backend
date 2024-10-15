@@ -23,21 +23,21 @@ export const getUser = async (req, res) => {
                 }
 
                 await userModel.findByIdAndUpdate(req.user.userId, updateQuery);
-                return res.status(200).send({
+                return res.status(constant.statusCode.success).send({
                     status: true,
                     message: query.add === 'true' ? constant.user.recipe.recipeSaved : constant.user.recipe.recipeUnSaved,
                 });
             } catch (error) {
-                return res.status(400).send({ status: false, message: constant.general.genericError });
+                return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
             }
         }
 
         if (req.query._id) {
             try {
                 const userData = await userModel.findById(req.query._id).select(['name', 'email', 'bio', 'city', 'favouriteRecipe', 'state']);
-                return res.status(200).send({ status: true, message: constant.general.fetchData, data: userData });
+                return res.status(constant.statusCode.success).send({ status: true, message: constant.general.fetchData, data: userData });
             } catch (error) {
-                return res.status(400).send({ status: false, message: constant.general.genericError });
+                return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
             }
         }
 
@@ -113,8 +113,8 @@ export const getUser = async (req, res) => {
                 }
             }
         ]);
-           
-        return res.status(200).send({
+
+        return res.status(users.length > 0 ? constant.statusCode.success : constant.statusCode.notFound).send({
             timestamp: moment().unix(),
             message: users.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
             success: true,
@@ -122,6 +122,6 @@ export const getUser = async (req, res) => {
             data: users
         });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };

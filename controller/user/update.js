@@ -10,28 +10,28 @@ export const updateUser = async (req, res) => {
         body.url = req.url;
 
         if (body.email) {
-            return res.status(400).send({ status: false, message: constant.user.validationError.emailRestricted })
+            return res.status(constant.statusCode.accessDenied).send({ status: false, message: constant.user.validationError.emailRestricted })
         }
 
         if (!isValidRequest(body)) {
-            return res.status(400).send({ status: false, message: constant.user.validationError.missingUpdateField });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.user.validationError.missingUpdateField });
         }
 
         const validationErrors = validateDetails(body);
         if (validationErrors) {
-            return res.status(400).send({ status: false, message: validationErrors });
+            return res.status(constant.statusCode.required).send({ status: false, message: validationErrors });
         }
 
         if (body.confirmPassword !== body.password) {
-            return res.status(400).send({ status: false, message: constant.forgotPassword.validationError.passwordNotMatch })
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.forgotPassword.validationError.passwordNotMatch })
         }
 
         if (body.password) {
             body.password = await hashPassword(body.password)
         }
         await userModel.findOneAndUpdate({ _id: req.user.userId }, body, { new: true });
-        return res.status(200).send({ status: true, message: constant.user.updateDone });
+        return res.status(constant.statusCode.success).send({ status: true, message: constant.user.updateDone });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };

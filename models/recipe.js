@@ -3,15 +3,18 @@ import mongoose from 'mongoose';
 const recipeSchema = new mongoose.Schema({
     title: {
         type: String,
+        index: true,
     },
     description: {
         type: String,
     },
     ingredients: [{
         type: String,
+        index: true,
     }],
     steps: [{
         type: String,
+        index: true,
     }],
     imageUrl: {
         type: String,
@@ -27,6 +30,8 @@ const recipeSchema = new mongoose.Schema({
         ref: 'User',
     },
 }, { collection: 'recipe', timestamps: true });
+
+recipeSchema.index({ title: 'text', ingredients: 'text', steps: 'text' });
 
 const recipeModel = mongoose.model('Recipe', recipeSchema);
 

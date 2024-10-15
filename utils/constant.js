@@ -1,4 +1,16 @@
 const constant = {
+    statusCode: {
+        success: 200,
+        required: 400,
+        unauthorized: 401,
+        accessDenied: 403,
+        notFound: 404,
+        alreadyExist: 409,
+        expired: 410,
+        tooManyRequests: 429,
+        somethingWentWrong: 500,
+        serviceUnavailable: 503
+    },
     general: {
         welcome: 'Welcome peeps!',
         mongoConnectionSuccess: 'MongoDB is connected 👍 😄',
@@ -50,7 +62,6 @@ const constant = {
     user: {
         userCreationSuccess: 'User created successfully',
         emailAlreadyExists: 'Email Already Exist',
-        phoneAlreadyExists: 'Phone Number Already Exists',
         followUser: 'Follow successfully',
         unfollowUser: 'Unfollow successfully',
         hasFollow: 'has followed you',

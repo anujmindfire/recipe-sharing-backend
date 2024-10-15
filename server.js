@@ -2,11 +2,11 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import webRoutes from './routes/index.js';
 import constant from './utils/constant.js';
+import SocketConnection from './utils/socketConnection.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import http from 'http';
-import { Server } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -38,43 +38,26 @@ app.get('/', (req, res) => {
 // Store user socket connections
 global.userSockets = {};
 
-mongoose.connect(process.env.MONGOURL, {})
-    .then(() => {
-        const io = new Server(server, {
-            cors: {
-                origin: '*',
-                methods: ['GET', 'POST'],
-                credentials: true,
-                allowedHeaders: ['Authorization', 'Content-Type']
-            }
-        });
-
-        global.io = io;
-
-        io.on('connection', (socket) => {
-
-            socket.on('join', (userId) => {
-                socket.join(userId);
-                global.userSockets[userId] = socket.id;
-            });
-
-            socket.on('disconnect', () => {
-                for (const userId in global.userSockets) {
-                    if (global.userSockets[userId] === socket.id) {
-                        delete global.userSockets[userId];
-                        break;
-                    }
-                }
-            });
-        });
-
-        server.listen(process.env.PORT, () => {
-            console.log(constant.general.expressAppRunning(process.env.PORT));
-        });
-
+// MongoDB connection
+const connectToMongoDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGOURL, {});
         console.log(constant.general.mongoConnectionSuccess);
-    })
-    .catch((err) => {
+    } catch (err) {
         console.error(constant.general.mongoConnectionError, err);
         process.exit(1);
+    }
+};
+
+// Start the server
+const startServer = async () => {
+    await connectToMongoDB();
+    new SocketConnection(server);
+
+    server.listen(process.env.PORT, () => {
+        console.log(constant.general.expressAppRunning(process.env.PORT));
     });
+};
+
+// Call the function to start the server
+startServer();

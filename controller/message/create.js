@@ -9,28 +9,39 @@ export const createMessage = async (req, res) => {
 
         // Validate request body
         if (!isValidRequest(body)) {
-            return res.status(400).send({ status: false, message: constant.message.missingMessageDetails });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.message.missingMessageDetails });
         }
 
         // Check required fields
         const requiredFields = checkRequiredFields(['sender', 'receiver', 'content'], body);
         if (requiredFields !== true) {
-            return res.status(400).send({ status: false, message: constant.general.requiredField(requiredFields) });
+            return res.status(constant.statusCode.required).send({ status: false, message: constant.general.requiredField(requiredFields) });
         }
 
         const receiverName = await userModel.findById(body.receiver).select('name');
+        if (!receiverName) {
+            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.userNotFound });
+        }
+        
+        const message = await messageModel.create(body);
 
+        // Emit message notification and message to the receiver for real-time communication
         const socketId = global.userSockets[body.receiver];
         if (socketId) {
             const notificationMessage = `${receiverName.name} ${constant.message.notification}`;
-            global.io.to(socketId).emit('message', {
-                message: notificationMessage
-            });
+            const messagePayload = {
+                notification: notificationMessage,
+                message: {
+                    sender: body.sender,
+                    receiver: body.receiver,
+                    content: body.content,
+                    timestamp: message.timestamp
+                }
+            };
+            global.io.to(socketId).emit('message', messagePayload);
         }
-
-        await messageModel.create(body);
-        return res.status(200).send({ status: true, message: constant.message.messageSend });
+        return res.status(constant.statusCode.success).send({ status: true, message: constant.message.messageSend });
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     }
 };

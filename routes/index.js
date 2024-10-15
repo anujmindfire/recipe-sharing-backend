@@ -37,7 +37,7 @@ router.use(getS3URL);
 
 /****** Validating the endpoint ******/
 router.all('/*', (req, res) => {
-  res.status(404).send({ status: false, message: constant.general.notFoundError });
+  res.status(constant.statusCode.notFound).send({ status: false, message: constant.general.notFoundError });
 });
 
 export default router;
