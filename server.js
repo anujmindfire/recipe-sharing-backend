@@ -52,8 +52,9 @@ const connectToMongoDB = async () => {
 // Start the server
 const startServer = async () => {
     await connectToMongoDB();
-    new SocketConnection(server);
-
+    const socketConnection = new SocketConnection(server);
+    global.io = socketConnection.io; 
+    
     server.listen(process.env.PORT, () => {
         console.log(constant.general.expressAppRunning(process.env.PORT));
     });

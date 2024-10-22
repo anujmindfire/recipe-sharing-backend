@@ -18,7 +18,7 @@ export const favoritesRecipe = async (req, res) => {
         }
 
         if (user.savedRecipes.length === 0) {
-            return res.status(constant.statusCode.notFound).send({ status: true, message: constant.recipe.recipeNotFound, data: [] });
+            return res.status(constant.statusCode.success).send({ status: true, message: constant.recipe.recipeNotFound, data: [] });
         }
 
         const totalRecipes = user.savedRecipes.length;
@@ -37,6 +37,12 @@ export const favoritesRecipe = async (req, res) => {
                 }
             },
             {
+                $project: {
+                    preparationTime: { $trim: { input: "$preparationTime" } },
+                    cookingTime: { $trim: { input: "$cookingTime" } }
+                }
+            },
+            {
                 $group: {
                     _id: null,
                     uniquePreparationTimes: { $addToSet: "$preparationTime" },
@@ -48,7 +54,7 @@ export const favoritesRecipe = async (req, res) => {
         const uniquePreparationTimes = uniqueTimes[0] ? uniqueTimes[0].uniquePreparationTimes : [];
         const uniqueCookingTimes = uniqueTimes[0] ? uniqueTimes[0].uniqueCookingTimes : [];
 
-        return res.status(data.length > 0 ? constant.statusCode.success : constant.statusCode.notFound).send({
+        return res.status(constant.statusCode.success).send({
             timestamp: moment().unix(),
             message: data.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
             success: true,

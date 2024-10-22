@@ -8,6 +8,7 @@ import recipe from './recipe.js';
 import recipeFeedback from './recipeFeedback.js';
 import message from './message.js'
 import getS3URL from './getS3Url.js';
+import notification from './notification.js';
 
 const router = express.Router();
 
@@ -34,6 +35,9 @@ router.use(message);
 
 /****** GET S3 URL ******/
 router.use(getS3URL);
+
+/****** NOTIFICATION ******/
+router.use(notification);
 
 /****** Validating the endpoint ******/
 router.all('/*', (req, res) => {

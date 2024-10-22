@@ -2,7 +2,8 @@ import jwt from 'jsonwebtoken';
 import userModel from '../../models/user.js';
 import loginHistoryModel from '../../models/loginHistory.js';
 import constant from '../../utils/constant.js';
-import { checkRequiredFields } from '../../validation/validation.js';
+import { checkRequiredFields, hashPassword, isValidRequest } from '../../validation/validation.js';
+import { handleUser, validateDetails } from '../../common/commonFunctions.js';
 
 export const signupUser = async (req, res) => {
     try {

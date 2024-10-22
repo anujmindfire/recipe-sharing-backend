@@ -77,7 +77,8 @@ const constant = {
             alreadyFollow: 'You are already following this user',
             notFollowing: 'You are not follow this user',
             missingUpdateField: 'Please provide data to update',
-            emailRestricted: 'Email is Restricted to update'
+            emailRestricted: 'Email is Restricted to update',
+            notFollowYour: 'You cannot follow yourself.',
         },
         recipe: {
             recipeSaved: 'Saved Recipe',
@@ -125,6 +126,8 @@ const constant = {
         missingMessageDetails: 'Please provide Message details',
         messageSend: 'Message Sent',
         notification: 'Sent a message to you',
+        notfound: 'Notification Not found',
+        read: 'read'
     }
 };
 

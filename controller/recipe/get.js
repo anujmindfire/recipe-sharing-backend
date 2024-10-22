@@ -61,6 +61,12 @@ export const getRecipe = async (req, res) => {
                 }
             },
             {
+                $project: {
+                    preparationTime: { $trim: { input: "$preparationTime" } },
+                    cookingTime: { $trim: { input: "$cookingTime" } }
+                }
+            },
+            {
                 $group: {
                     _id: null,
                     uniquePreparationTimes: { $addToSet: "$preparationTime" },
@@ -72,7 +78,7 @@ export const getRecipe = async (req, res) => {
         const uniquePreparationTimes = uniqueTimes[0] ? uniqueTimes[0].uniquePreparationTimes : [];
         const uniqueCookingTimes = uniqueTimes[0] ? uniqueTimes[0].uniqueCookingTimes : [];
 
-        return res.status(data.length > 0 ? constant.statusCode.success : constant.statusCode.notFound).send({
+        return res.status(constant.statusCode.success).send({
             timestamp: moment().unix(),
             message: data.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
             success: true,

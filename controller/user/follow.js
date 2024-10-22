@@ -1,3 +1,4 @@
+import notificationModel from '../../models/notification.js';
 import userModel from '../../models/user.js';
 import constant from '../../utils/constant.js';
 import { isValidId } from '../../validation/validation.js';
@@ -32,9 +33,15 @@ export const followUser = async (req, res) => {
 
             const followerData = await userModel.findById(body.followerId).select('name');
 
+            const notificationMessage = `${followerData.name} ${constant.user.hasFollow}`;
+            await notificationModel.create({
+                userId: body.followedId,
+                message: notificationMessage,
+                read: false
+            });
+
             const socketId = global.userSockets[body.followedId];
             if (socketId) {
-                const notificationMessage = `${followerData.name} ${constant.user.hasFollow}`;
                 global.io.to(socketId).emit('notification', {
                     message: notificationMessage
                 });
