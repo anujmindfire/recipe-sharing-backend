@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String,
         trim: true,
+        index: true,
     },
     email: {
         type: String,
@@ -44,6 +45,8 @@ const userSchema = new mongoose.Schema({
         trim: true
     }
 }, { collection: 'user', timestamps: true });
+
+userSchema.index({ name: 'text' });
 
 const userModel = mongoose.model('User', userSchema);
 

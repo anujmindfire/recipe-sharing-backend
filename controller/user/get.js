@@ -114,7 +114,7 @@ export const getUser = async (req, res) => {
             }
         ]);
 
-        return res.status(users.length > 0 ? constant.statusCode.success : constant.statusCode.notFound).send({
+        return res.status(constant.statusCode.success).send({
             timestamp: moment().unix(),
             message: users.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
             success: true,

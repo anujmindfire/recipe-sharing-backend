@@ -7,6 +7,10 @@ import { createOTP } from '../controller/otp/create.js';
 import { sendEmail } from '../services/sendEmail.js';
 import fs from 'fs';
 import path from 'path';
+import { getDirname } from '../utils/dirname.js';
+
+// Get the current directory using getDirname and import.meta.url
+const __dirname = getDirname(import.meta.url);
 
 // ************************ Common Function *********************** //
 
@@ -18,7 +22,6 @@ const generateOTP = () => {
 };
 
 const sendOTPByEmail = async (email, name, otp) => {
-    const __dirname = path.dirname(new URL(import.meta.url).pathname);
     const templatePath = path.join(__dirname, '../public', 'otp.html');
     let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
 
