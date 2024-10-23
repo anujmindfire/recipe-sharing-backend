@@ -9,6 +9,7 @@ import cors from 'cors';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import setupSwaggerDocs from './swagger.js';
 
 dotenv.config();
 
@@ -22,6 +23,9 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use('/api', webRoutes);
+
+// Swagger setup
+setupSwaggerDocs(app);
 
 app.get('/', async (req, res) => {
     res.send('Welcome peeps !');
