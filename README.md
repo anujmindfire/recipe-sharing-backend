@@ -79,3 +79,9 @@ Initial setup of the backend with user authentication and recipe management.
 Basic CRUD functionality for recipes.
 Filtering and searching recipes.
 Initial setup for email notifications and AWS S3 image storage.
+
+v1.0.1 - Initial Changes
+Adding Constant all message.
+Adding Custom operation function for response.
+Adding Husky and production logs.
+Separate connection with database.

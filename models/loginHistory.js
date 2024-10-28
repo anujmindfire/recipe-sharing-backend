@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import constant from '../utils/constant.js';
 
 const loginHistorySchema = new mongoose.Schema({
     userId: {
@@ -7,7 +8,7 @@ const loginHistorySchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        maxlength: 5,
+        maxlength: constant.recipe.maxValue,
     },
     refreshToken: {
         type: String,

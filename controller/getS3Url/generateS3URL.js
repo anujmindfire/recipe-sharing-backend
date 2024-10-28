@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import dotenv from 'dotenv';
 import constant from '../../utils/constant.js';
+import { sendErrorResponse } from '../../utils/response.js';
 
 dotenv.config();
 
@@ -17,15 +18,12 @@ export const generateS3URL = async (req, res) => {
         const file = req.file;
 
         if (!file) {
-            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.s3.noFileUploaded });
+            return sendErrorResponse(res, constant.statusCode.notFound, constant.s3.noFileUploaded);
         }
 
         const fileSizeInKB = file.size / 1024;
         if (fileSizeInKB < 20 || fileSizeInKB > 10240) {
-            return res.status(constant.statusCode.required).send({
-                status: false,
-                message: constant.s3.invalidFileSize(fileSizeInKB),
-            });
+            return sendErrorResponse(res, constant.statusCode.required, constant.s3.invalidFileSize(fileSizeInKB));
         }
 
         const timestamp = Date.now();
@@ -45,6 +43,6 @@ export const generateS3URL = async (req, res) => {
         const imageUrl = `https://${process.env.BUCKET}.s3.amazonaws.com/${key}`;
         return res.json({ imageUrl });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };

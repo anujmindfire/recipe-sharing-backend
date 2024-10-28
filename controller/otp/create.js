@@ -3,6 +3,7 @@ import os from 'os';
 import ua from 'ua-parser';
 import otpModel from '../../models/otp.js'
 import { generateOTP } from '../../common/commonFunctions.js';
+import { sendErrorResponse } from '../../utils/response.js';
 import constant from '../../utils/constant.js';
 
 export const createOTP = async (req, res) => {
@@ -39,7 +40,7 @@ export const createOTP = async (req, res) => {
 
         return { txnId: otpEntry.txnId, otp: otpEntry.otp };
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
 
@@ -61,7 +62,7 @@ export const processBlockedUser = async (req, res, otp, transaction) => {
 
         throw new Error(constant.otp.validationError.invalidOtp);
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 }
 
@@ -94,7 +95,7 @@ export const handleOTPLimit = async (req, res, otp, transaction) => {
 
         throw new Error(constant.otp.validationError.invalidOtp);
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 }
 

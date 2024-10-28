@@ -1,4 +1,5 @@
 import { globalFilter, globalPagination, globalSearch } from '../../common/commonFunctions.js';
+import { sendErrorResponse } from '../../utils/response.js';
 import { isValidId } from '../../validation/validation.js';
 import recipeModel from '../../models/recipe.js';
 import recipeFeedbackModel from '../../models/recipeFeedback.js';
@@ -17,12 +18,12 @@ export const getRecipe = async (req, res) => {
         if (req.query._id) {
             try {
                 if (!isValidId(req.query._id)) {
-                    return res.status(constant.statusCode.required).send({ status: false, message: constant.recipe.invalidID });
+                    return sendErrorResponse(res, constant.statusCode.required, constant.recipe.invalidID);
                 }
 
                 const recipe = await recipeModel.findById(req.query._id).populate('creator', 'name');
                 if (!recipe) {
-                    return res.status(constant.statusCode.notFound).json({ status: false, message: constant.recipe.recipeNotFound });
+                    return sendErrorResponse(res, constant.statusCode.notFound, constant.recipe.recipeNotFound);
                 }
 
                 const feedbackStats = await getFeedbackStats(recipe._id);
@@ -40,7 +41,7 @@ export const getRecipe = async (req, res) => {
 
                 return res.status(constant.statusCode.success).send({ status: true, message: constant.general.fetchData, data: responseData });
             } catch (error) {
-                return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+                return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error);
             }
         }
 
@@ -91,7 +92,7 @@ export const getRecipe = async (req, res) => {
             uniqueCookingTimes: uniqueCookingTimes
         });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
 

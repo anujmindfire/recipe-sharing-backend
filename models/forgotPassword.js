@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import constant from '../utils/constant.js';
 
 const forgotPasswordSchema = new mongoose.Schema({
     txnId: {
@@ -24,11 +25,11 @@ const forgotPasswordSchema = new mongoose.Schema({
     },
     requestCount: {
         type: Number,
-        default: 0,
+        default: constant.forgotPassword.defaultValue,
     },
     emailCount: {
         type: Number,
-        default: 0,
+        default: constant.forgotPassword.defaultValue,
     },
     lastEmailSent: {
         type: Date,

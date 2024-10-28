@@ -23,6 +23,7 @@ const constant = {
         notFoundData: 'No data found'
     },
     forgotPassword: {
+        defaultValue: 0,
         emailSuccess: 'Please check the email address for instructions to reset your password.',
         passwordChange: 'Password changed successfully',
         validationError: {
@@ -100,7 +101,29 @@ const constant = {
         duplicateTitleError: 'You have already created a recipe with this title. Please choose a different title.',
         recipeCreatedSuccess: 'Recipe created successfully',
         recipeNotFound: 'Recipe not found',
-        invalidID: 'Invalid RecipeID'
+        invalidID: 'Invalid RecipeID',
+        minValue: 1,
+        maxValue: 5,
+        testCase: {
+            createRecipe: 'createRecipe Controller',
+            requestBodyEmpty: 'should return 400 if the request body is empty',
+            requirefield: 'should return 400 if a required field is missing',
+            duplicateTitle: 'should return 409 if a recipe with the same title exists for the user',
+            successRecipe: 'should return 200 and create a recipe successfully',
+            somethingWrong: 'should return 500 if something goes wrong',
+            required: 'Title is required',
+            error: 'Database error',
+            recipeBody: {
+                title: 'Testing Recipes',
+                ingredients: ['Salt', 'Pepper'],
+                steps: ['Step 1', 'Step 2'],
+                imageUrl: 'http://example.com/image.jpg',
+                preparationTime: '15 mins',
+                cookingTime: '30 mins',
+                creator: 'user123',
+            },
+            emptyBody: {}
+        }
     },
     s3: {
         noFileUploaded: 'No file uploaded.',

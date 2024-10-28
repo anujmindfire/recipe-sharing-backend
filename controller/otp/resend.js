@@ -1,31 +1,31 @@
 import userModel from '../../models/user.js';
 import otpModel from '../../models/otp.js';
 import { generateOTP, sendOTPByEmail } from '../../common/commonFunctions.js';
-import { processBlockedUser, handleOTPLimit } from './create.js'
+import { processBlockedUser, handleOTPLimit } from './create.js';
+import { sendErrorResponse } from '../../utils/response.js';
 import constant from '../../utils/constant.js';
 
 export const resendOTP = async (req, res) => {
     try {
-
         const body = req.body;
         let otpCode = generateOTP();
         
-        let transaction = await otpModel.findOne({ txnId: body.txnId });
+        const transaction = await otpModel.findOne({ txnId: body.txnId });
         
         if (!transaction) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.otp.validationError.invalidTransationId });
+            return sendErrorResponse(res, constant.statusCode.required, constant.otp.validationError.invalidTransationId);
         }
 
         const user = await userModel.findOne({ email: transaction.email }).select(['email', 'name']);
 
         if (!user) {
-            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.userNotFound });
+            return sendErrorResponse(res, constant.statusCode.notFound, constant.otp.validationError.userNotFound);
         }
 
         if (transaction.limit === constant.otp.maxLimit && transaction.blockedUntil !== null) {            
             const result = await processBlockedUser(req, res, otpCode, transaction);
             if ([constant.otp.validationError.tryAgain].includes(result)) {
-                return res.status(constant.statusCode.serviceUnavailable).send({ status: false, message: result });
+                return sendErrorResponse(res, constant.statusCode.serviceUnavailable, result);
             }
             transaction.txnId = result.txnId; 
             otpCode = result.otp;
@@ -33,9 +33,8 @@ export const resendOTP = async (req, res) => {
 
         if (transaction && transaction.blockedUntil === null) {
             const result = await handleOTPLimit(req, res, otpCode, transaction);
-
             if ([constant.otp.validationError.reachLimit].includes(result)) {
-                return res.status(constant.statusCode.tooManyRequests).send({ status: false, message: result });
+                return sendErrorResponse(res, constant.statusCode.tooManyRequests, result);
             }
 
             transaction.txnId = result.txnId; 
@@ -44,10 +43,10 @@ export const resendOTP = async (req, res) => {
 
         const emailResult = await sendOTPByEmail(user.email, user.name, otpCode);
         if (emailResult === constant.forgotPassword.validationError.invalidCred) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.forgotPassword.validationError.errorSendEmail });
+            return sendErrorResponse(res, constant.statusCode.required, constant.forgotPassword.validationError.errorSendEmail);
         }
         return res.status(constant.statusCode.success).send({ status: true, message: constant.otp.otpSuccess, data: { txnId: transaction.txnId } });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };

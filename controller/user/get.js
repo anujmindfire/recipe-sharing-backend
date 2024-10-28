@@ -3,6 +3,7 @@ import userModel from '../../models/user.js';
 import constant from '../../utils/constant.js';
 import moment from 'moment';
 import mongoose from 'mongoose';
+import { sendErrorResponse } from '../../utils/response.js';
 
 export const getUser = async (req, res) => {
     try {
@@ -14,13 +15,9 @@ export const getUser = async (req, res) => {
         if (req.query.recipeId) {
             try {
                 const query = req.query;
-                let updateQuery;
-
-                if (query.add === 'true') {
-                    updateQuery = { $addToSet: { savedRecipes: query?.recipeId } };
-                } else if (query.add === 'false') {
-                    updateQuery = { $pull: { savedRecipes: query?.recipeId } };
-                }
+                const updateQuery = query.add === 'true' 
+                    ? { $addToSet: { savedRecipes: query.recipeId } }
+                    : { $pull: { savedRecipes: query.recipeId } };
 
                 await userModel.findByIdAndUpdate(req.user.userId, updateQuery);
                 return res.status(constant.statusCode.success).send({
@@ -28,7 +25,7 @@ export const getUser = async (req, res) => {
                     message: query.add === 'true' ? constant.user.recipe.recipeSaved : constant.user.recipe.recipeUnSaved,
                 });
             } catch (error) {
-                return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+                return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
             }
         }
 
@@ -37,7 +34,7 @@ export const getUser = async (req, res) => {
                 const userData = await userModel.findById(req.query._id).select(['name', 'email', 'bio', 'city', 'favouriteRecipe', 'state']);
                 return res.status(constant.statusCode.success).send({ status: true, message: constant.general.fetchData, data: userData });
             } catch (error) {
-                return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+                return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
             }
         }
 
@@ -122,6 +119,6 @@ export const getUser = async (req, res) => {
             data: users
         });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
