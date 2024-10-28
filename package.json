@@ -10,7 +10,8 @@
     "deploy": "NODE_ENV=production node server.js",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "*.js": [

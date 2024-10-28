@@ -12,5 +12,3 @@ export default {
         'footer-empty': [0, 'always']
     }
 };
-
-
