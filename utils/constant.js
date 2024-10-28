@@ -86,7 +86,6 @@ const constant = {
         }
     },
     feedback: {
-        recipeNotFound: 'No saved recipes found',
         missingFeedbackDetails: 'Please provide Feedback details',
         invalidRatingValue: 'Rating value must be between 1 and 5.',
         recipeNotFound: 'Recipe not found',

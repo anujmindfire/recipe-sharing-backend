@@ -32,6 +32,6 @@ export const updateUser = async (req, res) => {
         await userModel.findOneAndUpdate({ _id: req.user.userId }, body, { new: true });
         return res.status(constant.statusCode.success).send({ status: true, message: constant.user.updateDone });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };

@@ -43,6 +43,6 @@ export const passwordVerify = async (req, res) => {
             return res.status(constant.statusCode.success).send({ status: true, message: constant.forgotPassword.passwordChange })
         }
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };

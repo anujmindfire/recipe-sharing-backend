@@ -48,7 +48,7 @@ export const getUserInfo = async (req, res, next) => {
         req.data = userData;
         next();
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };
 
@@ -109,6 +109,6 @@ export const createToken = async (req, res) => {
             data: objData
         });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };

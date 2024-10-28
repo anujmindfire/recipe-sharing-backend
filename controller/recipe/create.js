@@ -31,6 +31,6 @@ export const createRecipe = async (req, res) => {
 
         return res.status(constant.statusCode.success).send({ status: true, message: constant.recipe.recipeCreatedSuccess, data: result });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };

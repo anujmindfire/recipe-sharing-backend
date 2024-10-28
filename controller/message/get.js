@@ -13,6 +13,6 @@ export const getMessage = async (req, res) => {
         }).sort({ timestamp: 1 });
         return res.status(200).json({ data: message } );
     } catch (error) {
-        return res.status(400).send({ status: false, message: constant.general.genericError });
+        return res.status(400).send({ status: false, message: constant.general.genericError, error });
     }
 };

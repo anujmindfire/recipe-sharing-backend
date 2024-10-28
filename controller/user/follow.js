@@ -76,6 +76,6 @@ export const followUser = async (req, res) => {
         }
         return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };

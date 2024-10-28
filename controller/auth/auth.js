@@ -37,7 +37,7 @@ export const signupUser = async (req, res) => {
 
         return handleUser(req, res, body);
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };
 
@@ -75,7 +75,7 @@ export const verifyToken = async (req, res, next) => {
     }
 };
 
-export const refreshAccessToken = async (req, res, next) => {
+export const refreshAccessToken = async (req, res) => {
     const refreshtoken = req.headers['refreshtoken'];
 
     // If neither token is provided, return an error
@@ -136,6 +136,6 @@ export const logout = async (req, res) => {
         }
         return res.status(constant.statusCode.unauthorized).send({ status: true, message: constant.auth.userUnauthorized });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };

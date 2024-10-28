@@ -50,7 +50,7 @@ const sendOTPByEmail = async (email, name, otp) => {
             }
         }
     } catch (error) {
-        throw new Error(constant.forgotPassword.validationError.errorSendEmail);
+        throw new Error(constant.forgotPassword.validationError.errorSendEmail, error);
     }
 };
 
@@ -213,7 +213,7 @@ const handleUser = async (req, res, body) => {
         }
         return res.status(constant.statusCode.success).send({ status: true, message: constant.otp.otpSuccess, data: { txnId: otpResult.txnId } });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 }
 

@@ -32,8 +32,8 @@ export const favoritesRecipe = async (req, res) => {
         const uniqueTimes = await recipeModel.aggregate([
             {
                 $match: {
-                    preparationTime: { $ne: null, $ne: "" },
-                    cookingTime: { $ne: null, $ne: "" }
+                    preparationTime: { $ne: "" },
+                    cookingTime: { $ne: "" }
                 }
             },
             {
@@ -64,6 +64,6 @@ export const favoritesRecipe = async (req, res) => {
             uniqueCookingTimes: uniqueCookingTimes
         });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };

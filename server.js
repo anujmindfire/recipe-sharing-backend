@@ -33,7 +33,7 @@ app.get('/', async (req, res) => {
 });
 
 // An error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
     res.status(constant.statusCode.required);
     res.json({ message: constant.general.genericError, err })
 });

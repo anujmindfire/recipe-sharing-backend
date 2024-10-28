@@ -50,6 +50,6 @@ export const createMessage = async (req, res) => {
         }
         return res.status(constant.statusCode.success).send({ status: true, message: constant.message.messageSend });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError, error });
     }
 };
