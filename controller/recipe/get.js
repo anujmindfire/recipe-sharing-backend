@@ -1,4 +1,5 @@
 import { globalFilter, globalPagination, globalSearch } from '../../common/commonFunctions.js';
+import { sendErrorResponse } from '../../utils/response.js';
 import { isValidId } from '../../validation/validation.js';
 import recipeModel from '../../models/recipe.js';
 import recipeFeedbackModel from '../../models/recipeFeedback.js';
@@ -13,25 +14,22 @@ export const getRecipe = async (req, res) => {
         const searchConditions = globalSearch(req.query.searchKey, recipeModel);
         const conditions = { ...searchConditions, ...filterConditions };
 
+        // If a specific recipe ID is provided
         if (req.query._id) {
             try {
-
                 if (!isValidId(req.query._id)) {
-                    return res.status(constant.statusCode.required).send({ status: false, message: constant.recipe.invalidID });
+                    return sendErrorResponse(res, constant.statusCode.required, constant.recipe.invalidID);
                 }
-                // Fetch the recipe by ID
+
                 const recipe = await recipeModel.findById(req.query._id).populate('creator', 'name');
-
                 if (!recipe) {
-                    return res.status(constant.statusCode.notFound).json({ status: false, message: constant.recipe.recipeNotFound });
+                    return sendErrorResponse(res, constant.statusCode.notFound, constant.recipe.recipeNotFound);
                 }
 
-                // Fetch feedback stats and calculate review count, average rating, and rating distributions
                 const feedbackStats = await getFeedbackStats(recipe._id);
                 const user = await userModel.findById(req.user.userId).select('savedRecipes');
                 const isSaved = user.savedRecipes.includes(recipe._id);
 
-                // Prepare response data
                 const responseData = {
                     recipe,
                     isSaved,
@@ -43,21 +41,27 @@ export const getRecipe = async (req, res) => {
 
                 return res.status(constant.statusCode.success).send({ status: true, message: constant.general.fetchData, data: responseData });
             } catch (error) {
-                return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+                return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error);
             }
         }
 
         const count = await recipeModel.countDocuments(conditions);
-        const data = await recipeModel.find(conditions)
-            .skip(skip)
-            .limit(limit)
-            .sort({ title: 1 });
+        const recipes = await recipeModel.find(conditions).skip(skip).limit(limit).sort({ title: 1 });
+
+        const recipesWithStats = await Promise.all(recipes.map(async (recipe) => {
+            const feedbackStats = await getFeedbackStats(recipe._id);
+            return {
+                ...recipe.toObject(),
+                totalRating: feedbackStats.totalReviews,
+                averageRating: feedbackStats.averageRating,
+            };
+        }));
 
         const uniqueTimes = await recipeModel.aggregate([
             {
                 $match: {
-                    preparationTime: { $ne: null, $ne: "" },
-                    cookingTime: { $ne: null, $ne: "" }
+                    preparationTime: { $ne: "" },
+                    cookingTime: { $ne: "" }
                 }
             },
             {
@@ -80,15 +84,15 @@ export const getRecipe = async (req, res) => {
 
         return res.status(constant.statusCode.success).send({
             timestamp: moment().unix(),
-            message: data.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
+            message: recipesWithStats.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
             success: true,
             total: count,
-            data: data,
+            data: recipesWithStats,
             uniquePreparationTimes: uniquePreparationTimes,
             uniqueCookingTimes: uniqueCookingTimes
         });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
 

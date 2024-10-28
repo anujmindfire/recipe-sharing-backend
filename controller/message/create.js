@@ -1,8 +1,9 @@
 import constant from '../../utils/constant.js';
 import messageModel from '../../models/message.js';
-import notificationModel from '../../models/notification.js'
+import notificationModel from '../../models/notification.js';
 import { checkRequiredFields, isValidRequest } from '../../validation/validation.js';
 import userModel from '../../models/user.js';
+import { sendErrorResponse } from '../../utils/response.js';
 
 export const createMessage = async (req, res) => {
     try {
@@ -10,25 +11,25 @@ export const createMessage = async (req, res) => {
 
         // Validate request body
         if (!isValidRequest(body)) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.message.missingMessageDetails });
+            return sendErrorResponse(res, constant.statusCode.required, constant.message.missingMessageDetails);
         }
 
         // Check required fields
         const requiredFields = checkRequiredFields(['sender', 'receiver', 'content'], body);
         if (requiredFields !== true) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.general.requiredField(requiredFields) });
+            return sendErrorResponse(res, constant.statusCode.required, constant.general.requiredField(requiredFields));
         }
 
-        const receiverName = await userModel.findById(body.receiver).select('name');
-        if (!receiverName) {
-            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.userNotFound });
+        const receiver = await userModel.findById(body.receiver).select('name');
+        if (!receiver) {
+            return sendErrorResponse(res, constant.statusCode.notFound, constant.otp.validationError.userNotFound);
         }
 
-        // Create the message        
+        // Create the message
         await messageModel.create(body);
 
         // Create a notification for the receiver
-        const notificationMessage = `${receiverName.name} ${constant.message.notification}`;
+        const notificationMessage = `${receiver.name} ${constant.message.notification}`;
         await notificationModel.create({
             userId: body.receiver,
             message: notificationMessage,
@@ -50,6 +51,6 @@ export const createMessage = async (req, res) => {
         }
         return res.status(constant.statusCode.success).send({ status: true, message: constant.message.messageSend });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };

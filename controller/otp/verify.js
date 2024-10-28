@@ -1,36 +1,35 @@
 import userModel from '../../models/user.js';
 import otpModel from '../../models/otp.js';
 import constant from '../../utils/constant.js';
+import { sendErrorResponse } from '../../utils/response.js';
 
 export const verifyOTP = async (req, res) => {
     try {
-        
         const body = req.body;
         const transaction = await otpModel.findOne({ txnId: body.txnId });
 
         if (!transaction) {
-            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.transactionNotMatch });
+            return sendErrorResponse(res, constant.statusCode.notFound, constant.otp.validationError.transactionNotMatch);
         }
 
         if (transaction.expired) {
-            return res.status(constant.statusCode.expired).send({ status: false, message: constant.otp.validationError.otpExpired });
+            return sendErrorResponse(res, constant.statusCode.expired, constant.otp.validationError.otpExpired);
         }
-            
 
         const timeDifference = new Date() - new Date(transaction.updatedAt);
         
         if (timeDifference > transaction.expiryTime) {
             await markTransactionAsExpired(transaction);
-            return res.status(constant.statusCode.expired).send({ status: false, message: constant.otp.validationError.otpHasBeenExpired });
+            return sendErrorResponse(res, constant.statusCode.expired, constant.otp.validationError.otpHasBeenExpired);
         }
         
         if (body.otp !== transaction.otp) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.otp.validationError.emailOtpNotMatch });
+            return sendErrorResponse(res, constant.statusCode.required, constant.otp.validationError.emailOtpNotMatch);
         }
 
         const user = await userModel.findOne({ email: transaction.email }).select('email');
         if (!user) {
-            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.otp.validationError.userNotFound });
+            return sendErrorResponse(res, constant.statusCode.notFound, constant.otp.validationError.userNotFound);
         }
 
         await verifyUser(user);
@@ -38,7 +37,7 @@ export const verifyOTP = async (req, res) => {
 
         return res.status(constant.statusCode.success).send({ status: true, message: constant.otp.otpVerified });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
 

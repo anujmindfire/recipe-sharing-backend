@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { isValidMail, isValidName, isValidPassword } from '../validation/validation.js';
+import { sendErrorResponse } from '../utils/response.js';
 import recipeFeedbackModel from '../models/recipeFeedback.js';
 import constant from '../utils/constant.js';
 import userModel from '../models/user.js';
@@ -50,7 +51,7 @@ const sendOTPByEmail = async (email, name, otp) => {
             }
         }
     } catch (error) {
-        throw new Error(constant.forgotPassword.validationError.errorSendEmail);
+        throw new Error(constant.forgotPassword.validationError.errorSendEmail, error);
     }
 };
 
@@ -194,16 +195,16 @@ const handleUser = async (req, res, body) => {
         const otpResult = await createOTP(req, res);
 
         if ([constant.otp.validationError.reachLimit].includes(otpResult)) {
-            return res.status(constant.statusCode.tooManyRequests).send({ status: false, message: otpResult });
+            return sendErrorResponse(res, constant.statusCode.tooManyRequests, otpResult);
         }
 
         if ([constant.otp.validationError.tryAgain].includes(otpResult)) {
-            return res.status(constant.statusCode.required).send({ status: false, message: otpResult });
+            return sendErrorResponse(res, constant.statusCode.required, otpResult);
         }
 
         const emailResult = await sendOTPByEmail(body.email, body.name, otpResult.otp);
         if (emailResult === constant.forgotPassword.validationError.invalidCred) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.forgotPassword.validationError.errorSendEmail });
+            return sendErrorResponse(res, constant.statusCode.required, constant.forgotPassword.validationError.errorSendEmail);
         }
 
         if (req.update) {
@@ -213,7 +214,7 @@ const handleUser = async (req, res, body) => {
         }
         return res.status(constant.statusCode.success).send({ status: true, message: constant.otp.otpSuccess, data: { txnId: otpResult.txnId } });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 }
 

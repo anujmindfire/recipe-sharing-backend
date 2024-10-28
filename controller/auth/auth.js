@@ -4,28 +4,29 @@ import loginHistoryModel from '../../models/loginHistory.js';
 import constant from '../../utils/constant.js';
 import { checkRequiredFields, hashPassword, isValidRequest } from '../../validation/validation.js';
 import { handleUser, validateDetails } from '../../common/commonFunctions.js';
+import { sendErrorResponse } from '../../utils/response.js';
 
 export const signupUser = async (req, res) => {
     try {
         const body = req.body;
 
         if (!isValidRequest(body)) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.user.validationError.missingFields });
+            return sendErrorResponse(res, constant.statusCode.required, constant.user.validationError.missingFields);
         }
 
         const requiredFields = checkRequiredFields(['name', 'email', 'password'], body);
         if (requiredFields !== true) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.general.requiredField(requiredFields) });
+            return sendErrorResponse(res, constant.statusCode.required, constant.general.requiredField(requiredFields));
         }
 
         const validationErrors = validateDetails(body);
         if (validationErrors) {
-            return res.status(constant.statusCode.required).send({ status: false, message: validationErrors });
+            return sendErrorResponse(res, constant.statusCode.required, validationErrors);
         }
 
         const isExistEmail = await userModel.findOne({ email: body.email });
         if (isExistEmail && isExistEmail.verified) {
-            return res.status(constant.statusCode.alreadyExist).send({ status: false, message: constant.user.emailAlreadyExists });
+            return sendErrorResponse(res, constant.statusCode.alreadyExist, constant.user.emailAlreadyExists);
         }
 
         body.password = await hashPassword(body.password);
@@ -37,7 +38,7 @@ export const signupUser = async (req, res) => {
 
         return handleUser(req, res, body);
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
 
@@ -46,7 +47,7 @@ export const verifyToken = async (req, res, next) => {
 
     // If neither token is provided, return an error
     if (!accessToken) {
-        return res.status(constant.statusCode.accessDenied).send({ status: false, message: constant.auth.accessDenied });
+        return sendErrorResponse(res, constant.statusCode.accessDenied, constant.auth.accessDenied);
     }
 
     try {
@@ -56,12 +57,12 @@ export const verifyToken = async (req, res, next) => {
         // Check user and session validity
         const user = await userModel.findOne({ _id: decoded.userId });
         if (!user) {
-            return res.status(constant.statusCode.notFound).send({ success: false, message: constant.auth.userUnauthorized });
+            return sendErrorResponse(res, constant.statusCode.notFound, constant.auth.userUnauthorized);
         }
 
         const logData = await loginHistoryModel.findOne({ userId: decoded.userId, _id: decoded.loginId });
         if (!logData || logData.loggedOutAt) {
-            return res.status(constant.statusCode.unauthorized).send({ success: false, message: constant.auth.tokenUnauthorized });
+            return sendErrorResponse(res, constant.statusCode.unauthorized, constant.auth.tokenUnauthorized);
         }
 
         // If access token is valid, attach user data to request
@@ -71,26 +72,26 @@ export const verifyToken = async (req, res, next) => {
         if (error.name === constant.auth.tokenExpiredError) {
             return res.status(constant.statusCode.unauthorized).send({ success: false, message: constant.auth.tokenUnauthorized, unauthorized: true });
         }
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
 
-export const refreshAccessToken = async (req, res, next) => {
+export const refreshAccessToken = async (req, res) => {
     const refreshtoken = req.headers['refreshtoken'];
 
     // If neither token is provided, return an error
     if (!refreshtoken) {
-        return res.status(constant.statusCode.accessDenied).send({ status: false, message: constant.auth.accessDenied });
+        return sendErrorResponse(res, constant.statusCode.accessDenied, constant.auth.accessDenied);
     }
 
     try {
-        // First, try to verify the access token
+        // First, try to verify the refresh token
         const refreshDecoded = jwt.verify(refreshtoken, process.env.REFRESHSECRET);
 
         // Check user and session validity
         const user = await userModel.findOne({ _id: refreshDecoded.userId });
         if (!user) {
-            return res.status(constant.statusCode.notFound).send({ success: false, message: constant.auth.userUnauthorized });
+            return sendErrorResponse(res, constant.statusCode.notFound, constant.auth.userUnauthorized);
         }
 
         const logData = await loginHistoryModel.findOne({
@@ -124,7 +125,7 @@ export const refreshAccessToken = async (req, res, next) => {
                 return res.status(constant.statusCode.unauthorized).send({ status: false, message: constant.auth.tokenExpired, logout: true });
             }
         }
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
 
@@ -134,8 +135,8 @@ export const logout = async (req, res) => {
         if (data && data.modifiedCount > 0) {
             return res.status(constant.statusCode.success).send({ status: true, message: constant.auth.logoutSuccess });
         }
-        return res.status(constant.statusCode.unauthorized).send({ status: true, message: constant.auth.userUnauthorized });
+        return sendErrorResponse(res, constant.statusCode.unauthorized, constant.auth.userUnauthorized);
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };

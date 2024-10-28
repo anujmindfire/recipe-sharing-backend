@@ -6,22 +6,14 @@ import constant from '../../utils/constant.js';
 jest.mock('../../models/recipe.js');
 jest.mock('../../models/user.js');
 
-describe('createRecipe Controller', () => {
+describe(constant.recipe.testCase.createRecipe, () => {
     let req, res;
 
     beforeEach(() => {
-        // Mock request and response objects
+        // Deep clone the recipeBody to avoid referencing issues
         req = {
-            body: {
-                title: 'Testing Recipes',
-                ingredients: ['Salt', 'Pepper'],
-                steps: ['Step 1', 'Step 2'],
-                imageUrl: 'http://example.com/image.jpg',
-                preparationTime: '15 mins',
-                cookingTime: '30 mins',
-                creator: 'user123',
-            },
-            user: { userId: 'user123' },
+            body: JSON.parse(JSON.stringify(constant.recipe.testCase.recipeBody)),
+            user: { userId: constant.recipe.testCase.recipeBody.creator },
         };
 
         res = {
@@ -35,75 +27,67 @@ describe('createRecipe Controller', () => {
     });
 
     // Test 1: Missing request body
-    it('should return 400 if the request body is empty', async () => {
+    it(constant.recipe.testCase.requestBodyEmpty, async () => {
         req.body = {};
 
         await createRecipe(req, res);
 
         expect(res.status).toHaveBeenCalledWith(constant.statusCode.required);
         expect(res.send).toHaveBeenCalledWith({
-            status: false, message: constant.recipe.missingRecipeDetails
+            status: false,
+            message: constant.recipe.missingRecipeDetails,
+            error: null,
         });
     });
 
     // Test 2: Missing required field
-    it('should return 400 if a required field is missing', async () => {
+    it(constant.recipe.testCase.requirefield, async () => {
         req.body.title = '';
 
         await createRecipe(req, res);
 
         expect(res.status).toHaveBeenCalledWith(constant.statusCode.required);
         expect(res.send).toHaveBeenCalledWith({
-            status: false, message: 'Title is required'
+            status: false,
+            message: constant.recipe.testCase.required,
+            error: null,
         });
     });
 
     // Test 3: Duplicate title
-    it('should return 409 if a recipe with the same title exists for the user', async () => {
-        recipeModel.findOne = jest.fn().mockResolvedValue(true);
+    it(constant.recipe.testCase.duplicateTitle, async () => {
+        recipeModel.findOne = jest.fn().mockResolvedValue({ title: req.body.title });
 
         await createRecipe(req, res);
 
         expect(res.status).toHaveBeenCalledWith(constant.statusCode.alreadyExist);
         expect(res.send).toHaveBeenCalledWith({
-            status: false, message: constant.recipe.duplicateTitleError
+            status: false,
+            message: constant.recipe.duplicateTitleError,
+            error: null,
         });
     });
 
     // Test 4: Successful recipe creation
-    it('should return 200 and create a recipe successfully', async () => {
+    it(constant.recipe.testCase.successRecipe, async () => {
 
         // Mock the findOne function to return null (no duplicate recipe)
         recipeModel.findOne = jest.fn().mockResolvedValue(null);
-        
-        // Mock the create function to resolve with the result
-        const result = {
-            title: 'Testing Recipes',
-            ingredients: ['Salt', 'Pepper'],
-            steps: ['Step 1', 'Step 2'],
-            imageUrl: 'http://example.com/image.jpg',
-            preparationTime: '15 mins',
-            cookingTime: '30 mins',
-            creator: 'user123',
-        };
-        recipeModel.create = jest.fn().mockResolvedValue(result);
+        recipeModel.create = jest.fn().mockResolvedValue(JSON.parse(JSON.stringify(constant.recipe.testCase.recipeBody)));
         await createRecipe(req, res);
     
         expect(res.status).toHaveBeenCalledWith(constant.statusCode.success);
         expect(res.send).toHaveBeenCalledWith({
             status: true,
             message: constant.recipe.recipeCreatedSuccess,
-            data: result,
+            data: JSON.parse(JSON.stringify(constant.recipe.testCase.recipeBody)),
         });
-    });    
+    });
 
     // Test 5: General error
-    it('should return 500 if something goes wrong', async () => {
-        // Mock the findOne function to return null (no duplicate recipe)
+    it(constant.recipe.testCase.somethingWrong, async () => {
         recipeModel.findOne = jest.fn().mockResolvedValue(null);
-
-        // Mock the create function to reject with an error
-        recipeModel.create = jest.fn().mockRejectedValue(new Error('Database error'));
+        recipeModel.create = jest.fn().mockRejectedValue(new Error(constant.recipe.testCase.error));
 
         await createRecipe(req, res);
 
@@ -111,6 +95,7 @@ describe('createRecipe Controller', () => {
         expect(res.send).toHaveBeenCalledWith({
             status: false,
             message: constant.general.genericError,
+            error: constant.recipe.testCase.error,
         });
     });
 });

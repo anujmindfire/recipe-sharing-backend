@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import constant from '../utils/constant.js';
 
 const recipeFeedbackSchema = new mongoose.Schema({
     recipeId: {
@@ -11,8 +12,8 @@ const recipeFeedbackSchema = new mongoose.Schema({
     },
     ratingValue: {
         type: Number,
-        min: 1,
-        max: 5,
+        min: constant.recipe.minValue,
+        max: constant.recipe.maxValue,
     },
     commentText: {
         type: String,

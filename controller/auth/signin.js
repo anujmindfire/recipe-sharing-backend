@@ -4,27 +4,28 @@ import { checkRequiredFields, isValidRequest } from '../../validation/validation
 import constant from '../../utils/constant.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { sendErrorResponse } from '../../utils/response.js';
 
 export const getUserInfo = async (req, res, next) => {
     try {
         const body = req.body;
 
         if (!isValidRequest(body)) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.auth.missingLoginDetails });
+            return sendErrorResponse(res, constant.statusCode.required, constant.auth.missingLoginDetails);
         }
 
         const requiredFields = checkRequiredFields(['email', 'password'], body);
         if (requiredFields !== true) {
-            return res.status(constant.statusCode.required).send({ status: false, message: `${constant.general.requiredField(requiredFields)} is required` });
+            return sendErrorResponse(res, constant.statusCode.required, `${constant.general.requiredField(requiredFields)} is required`);
         }
 
         const userData = await userModel.findOne({ email: body.email });
         if (!userData) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.auth.invalidCredential });
+            return sendErrorResponse(res, constant.statusCode.required, constant.auth.invalidCredential);
         }
 
         if (!userData.verified) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.auth.unverified });
+            return sendErrorResponse(res, constant.statusCode.required, constant.auth.unverified);
         }
 
         const activeSession = await loginHistoryModel.findOne({
@@ -42,20 +43,20 @@ export const getUserInfo = async (req, res, next) => {
 
         const passwordMatch = await bcrypt.compare(body.password, userData.password);
         if (!passwordMatch) {
-            return res.status(constant.statusCode.unauthorized).send({ status: false, message: constant.auth.invalidCredential });
+            return sendErrorResponse(res, constant.statusCode.unauthorized, constant.auth.invalidCredential);
         }
 
         req.data = userData;
         next();
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
 
 export const createToken = async (req, res) => {
     try {
         if (!req.data) {
-            return res.status(constant.statusCode.required).send({ status: false, message: constant.auth.invalidCredential });
+            return sendErrorResponse(res, constant.statusCode.required, constant.auth.invalidCredential);
         }
 
         const rowData = req.data;
@@ -109,6 +110,6 @@ export const createToken = async (req, res) => {
             data: objData
         });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };

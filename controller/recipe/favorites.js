@@ -2,6 +2,7 @@ import recipeModel from '../../models/recipe.js';
 import userModel from '../../models/user.js';
 import constant from '../../utils/constant.js';
 import { globalPagination, globalFilter, globalSearch } from '../../common/commonFunctions.js';
+import { sendErrorResponse } from '../../utils/response.js';
 import moment from 'moment';
 
 export const favoritesRecipe = async (req, res) => {
@@ -14,7 +15,7 @@ export const favoritesRecipe = async (req, res) => {
         const user = await userModel.findById(req.user.userId).select('savedRecipes');
 
         if (!user) {
-            return res.status(constant.statusCode.notFound).send({ status: false, message: constant.user.validationError.userNotFound });
+            return sendErrorResponse(res, constant.statusCode.notFound, constant.user.validationError.userNotFound);
         }
 
         if (user.savedRecipes.length === 0) {
@@ -32,8 +33,8 @@ export const favoritesRecipe = async (req, res) => {
         const uniqueTimes = await recipeModel.aggregate([
             {
                 $match: {
-                    preparationTime: { $ne: null, $ne: "" },
-                    cookingTime: { $ne: null, $ne: "" }
+                    preparationTime: { $ne: "" },
+                    cookingTime: { $ne: "" }
                 }
             },
             {
@@ -64,6 +65,6 @@ export const favoritesRecipe = async (req, res) => {
             uniqueCookingTimes: uniqueCookingTimes
         });
     } catch (error) {
-        return res.status(constant.statusCode.somethingWentWrong).send({ status: false, message: constant.general.genericError });
+        return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
     }
 };
