@@ -3,7 +3,8 @@ import bodyParser from 'body-parser';
 import webRoutes from './routes/index.js';
 import constant from './utils/constant.js';
 import SocketConnection from './utils/socketConnection.js';
-import mongoose from 'mongoose';
+import { connectToMongoDB } from './dbConnection.js';
+import logger from './utils/logger.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import http from 'http';
@@ -31,6 +32,12 @@ app.get('/', async (req, res) => {
     res.send('Welcome peeps !');
 });
 
+// An error handling middleware
+app.use((err, req, res, next) => {
+    res.status(constant.statusCode.required);
+    res.json({ message: constant.general.genericError, err })
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -42,17 +49,6 @@ app.get('/', (req, res) => {
 // Store user socket connections
 global.userSockets = {};
 
-// MongoDB connection
-const connectToMongoDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGOURL, {});
-        console.log(constant.general.mongoConnectionSuccess);
-    } catch (err) {
-        console.error(constant.general.mongoConnectionError, err);
-        process.exit(1);
-    }
-};
-
 // Start the server
 const startServer = async () => {
     await connectToMongoDB();
@@ -60,7 +56,7 @@ const startServer = async () => {
     global.io = socketConnection.io; 
     
     server.listen(process.env.PORT, () => {
-        console.log(constant.general.expressAppRunning(process.env.PORT));
+        logger.info(constant.general.expressAppRunning(process.env.PORT));
     });
 };
 
