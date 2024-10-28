@@ -7,7 +7,6 @@
     "test": "jest",
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "deploy": "NODE_ENV=production node server.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "lint:fix": "eslint . --fix",

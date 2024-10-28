@@ -10,9 +10,9 @@ describe(constant.recipe.testCase.createRecipe, () => {
     let req, res;
 
     beforeEach(() => {
-        // Mock request and response objects
+        // Deep clone the recipeBody to avoid referencing issues
         req = {
-            body: constant.recipe.testCase.recipeBody,
+            body: JSON.parse(JSON.stringify(constant.recipe.testCase.recipeBody)),
             user: { userId: constant.recipe.testCase.recipeBody.creator },
         };
 
@@ -34,9 +34,9 @@ describe(constant.recipe.testCase.createRecipe, () => {
 
         expect(res.status).toHaveBeenCalledWith(constant.statusCode.required);
         expect(res.send).toHaveBeenCalledWith({
-            status: false, 
+            status: false,
             message: constant.recipe.missingRecipeDetails,
-            error: null
+            error: null,
         });
     });
 
@@ -48,23 +48,23 @@ describe(constant.recipe.testCase.createRecipe, () => {
 
         expect(res.status).toHaveBeenCalledWith(constant.statusCode.required);
         expect(res.send).toHaveBeenCalledWith({
-            status: false, 
+            status: false,
             message: constant.recipe.testCase.required,
-            error: null
+            error: null,
         });
     });
 
     // Test 3: Duplicate title
     it(constant.recipe.testCase.duplicateTitle, async () => {
-        recipeModel.findOne = jest.fn().mockResolvedValue(true);
+        recipeModel.findOne = jest.fn().mockResolvedValue({ title: req.body.title });
 
         await createRecipe(req, res);
 
         expect(res.status).toHaveBeenCalledWith(constant.statusCode.alreadyExist);
         expect(res.send).toHaveBeenCalledWith({
-            status: false, 
+            status: false,
             message: constant.recipe.duplicateTitleError,
-            error: null
+            error: null,
         });
     });
 
@@ -73,25 +73,20 @@ describe(constant.recipe.testCase.createRecipe, () => {
 
         // Mock the findOne function to return null (no duplicate recipe)
         recipeModel.findOne = jest.fn().mockResolvedValue(null);
-        
-        // Mock the create function to resolve with the result
-        recipeModel.create = jest.fn().mockResolvedValue(constant.recipe.testCase.recipeBody);
+        recipeModel.create = jest.fn().mockResolvedValue(JSON.parse(JSON.stringify(constant.recipe.testCase.recipeBody)));
         await createRecipe(req, res);
     
         expect(res.status).toHaveBeenCalledWith(constant.statusCode.success);
         expect(res.send).toHaveBeenCalledWith({
-            success: true,
+            status: true,
             message: constant.recipe.recipeCreatedSuccess,
-            data: result,
+            data: JSON.parse(JSON.stringify(constant.recipe.testCase.recipeBody)),
         });
     });
 
     // Test 5: General error
     it(constant.recipe.testCase.somethingWrong, async () => {
-        // Mock the findOne function to return null (no duplicate recipe)
         recipeModel.findOne = jest.fn().mockResolvedValue(null);
-
-        // Mock the create function to reject with an error
         recipeModel.create = jest.fn().mockRejectedValue(new Error(constant.recipe.testCase.error));
 
         await createRecipe(req, res);
@@ -100,7 +95,7 @@ describe(constant.recipe.testCase.createRecipe, () => {
         expect(res.send).toHaveBeenCalledWith({
             status: false,
             message: constant.general.genericError,
-            error:  constant.recipe.testCase.error
+            error: constant.recipe.testCase.error,
         });
     });
 });

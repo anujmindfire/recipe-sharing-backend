@@ -114,13 +114,13 @@ const constant = {
             required: 'Title is required',
             error: 'Database error',
             recipeBody: {
-                title: 'Testing Recipes',
+                title: 'Testing Recipessss',
                 ingredients: ['Salt', 'Pepper'],
                 steps: ['Step 1', 'Step 2'],
-                imageUrl: 'http://example.com/image.jpg',
-                preparationTime: '15 mins',
-                cookingTime: '30 mins',
-                creator: 'user123',
+                imageUrl: 'http://example.com/image.jpeg',
+                preparationTime: '15 minute',
+                cookingTime: '30 minute',
+                creator: 'user124',
             },
             emptyBody: {}
         }
