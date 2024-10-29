@@ -1,17 +1,13 @@
 import recipeModel from '../../models/recipe.js';
 import userModel from '../../models/user.js';
 import constant from '../../utils/constant.js';
-import { globalPagination, globalFilter, globalSearch } from '../../common/commonFunctions.js';
+import { getUniqueTimes, getQueryConditions, getFeedbackStats } from './recipeHelper.js';
 import { sendErrorResponse } from '../../utils/response.js';
 import moment from 'moment';
 
 export const favoritesRecipe = async (req, res) => {
     try {
-        const { limit, skip } = globalPagination(req);
-        const filterConditions = await globalFilter(req);
-        const searchConditions = globalSearch(req.query.searchKey, recipeModel);
-        const conditions = { ...searchConditions, ...filterConditions };
-
+        const { limit, skip, conditions } = await getQueryConditions(req, recipeModel);
         const user = await userModel.findById(req.user.userId).select('savedRecipes');
 
         if (!user) {
@@ -23,46 +19,31 @@ export const favoritesRecipe = async (req, res) => {
         }
 
         const totalRecipes = user.savedRecipes.length;
-
-        const data = await recipeModel
+        const recipes = await recipeModel
             .find({ _id: { $in: user.savedRecipes }, ...conditions })
             .limit(limit)
             .skip(skip)
             .sort({ title: 1 });
 
-        const uniqueTimes = await recipeModel.aggregate([
-            {
-                $match: {
-                    preparationTime: { $ne: "" },
-                    cookingTime: { $ne: "" }
-                }
-            },
-            {
-                $project: {
-                    preparationTime: { $trim: { input: "$preparationTime" } },
-                    cookingTime: { $trim: { input: "$cookingTime" } }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    uniquePreparationTimes: { $addToSet: "$preparationTime" },
-                    uniqueCookingTimes: { $addToSet: "$cookingTime" }
-                }
-            }
-        ]);
+        const recipesWithStats = await Promise.all(recipes.map(async (recipe) => {
+            const feedbackStats = await getFeedbackStats(recipe._id);
+            return {
+                ...recipe.toObject(),
+                totalRating: feedbackStats.totalReviews,
+                averageRating: feedbackStats.averageRating,
+            };
+        }));
 
-        const uniquePreparationTimes = uniqueTimes[0] ? uniqueTimes[0].uniquePreparationTimes : [];
-        const uniqueCookingTimes = uniqueTimes[0] ? uniqueTimes[0].uniqueCookingTimes : [];
+        const { uniquePreparationTimes, uniqueCookingTimes } = await getUniqueTimes();
 
         return res.status(constant.statusCode.success).send({
             timestamp: moment().unix(),
-            message: data.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
+            message: recipesWithStats.length > 0 ? constant.general.fetchData : constant.general.notFoundData,
             success: true,
             total: totalRecipes,
-            data: data,
-            uniquePreparationTimes: uniquePreparationTimes,
-            uniqueCookingTimes: uniqueCookingTimes
+            data: recipesWithStats,
+            uniquePreparationTimes,
+            uniqueCookingTimes
         });
     } catch (error) {
         return sendErrorResponse(res, constant.statusCode.somethingWentWrong, constant.general.genericError, error.message);
